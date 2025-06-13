@@ -1,3 +1,4 @@
+// Required models and dependencies
 const User = require("../models/userModel")
 const Game = require("../models/gameModel")
 const Bet = require("../models/betModel")
@@ -8,12 +9,14 @@ const {flw} = require("../service/paymentService")
 const axios = require('axios');
 const Payment = require("../models/paymentModel")
 
-
+// Home page handler
 const handleHome = async (req,res) => {
     res.status(200).json({
         message:"HomePage Loaded Successfully"})
     
 }
+
+// Register new user
 
 const handleRegisterUser = async (req,res)=>{
    
@@ -45,7 +48,7 @@ const handleRegisterUser = async (req,res)=>{
 
 
 }
-
+// User login handler
 const handleLoginUser = async (req, res )=>{
 
     try {
@@ -53,7 +56,7 @@ const handleLoginUser = async (req, res )=>{
 
         const user = await User.findOne({email})
 
-    
+         // Validate login and generate tokens
         const accessToken = jwt.sign(
             {id:user?._id},
             process.env.ACCESS_TOKEN,
@@ -66,6 +69,7 @@ const handleLoginUser = async (req, res )=>{
             {expiresIn: "5d"}
 
         )
+         // Validate login and generate tokens
         res.cookie('refreshtoken', refreshToken,{
             httpOnly: true,
             path: '/user/refresh_token',
@@ -86,7 +90,7 @@ const handleLoginUser = async (req, res )=>{
     }
 
 }
-
+// Refresh token handler
 const handleRefreshToken = (req, res) => {
     const token = req.cookies.refreshtoken
     if (!token) return res.status(401).json({ message: 'No token found' })
@@ -94,7 +98,7 @@ const handleRefreshToken = (req, res) => {
     
 
   }
-
+// Get all available games
 const handleGames =  async (req, res)=>{
     try {
         const allGames = await Game.find()
@@ -110,7 +114,7 @@ const handleGames =  async (req, res)=>{
     
 
 }
-
+// Send password reset link to user email
 const handleForgotPassword = async(req,res)=>{
     try {
         const {email} = req.body
@@ -134,6 +138,7 @@ const handleForgotPassword = async(req,res)=>{
 
 }
 
+// Reset password with valid token
 const handleResetPassword =  async(req,res)=>{
     try {
         const token = req.params.token
@@ -168,6 +173,7 @@ const handleResetPassword =  async(req,res)=>{
     
 }
 
+// Reset password with valid token
 const handlePostGames = async (req, res)=>{
     try {
         
@@ -198,6 +204,8 @@ const handlePostGames = async (req, res)=>{
 
 }
 
+// Place a bet on a game
+
 const handlePlaceBet = async (req, res)=>{
     try {
         const {gameId, stake, option} =req.body
@@ -216,6 +224,7 @@ const handlePlaceBet = async (req, res)=>{
     
         await bet.save()
         
+        // Deduct stake from user's wallet
         user.walletBalance = user.walletBalance - stake
     
         await user.save()
@@ -232,6 +241,8 @@ const handlePlaceBet = async (req, res)=>{
     }
 
 }
+
+// Admin: update game result
 const handleGameResults = async (req,res) => {
  try {
     const {gameId} = req.params
@@ -251,6 +262,7 @@ const handleGameResults = async (req,res) => {
 
 } 
 
+// Admin: auto-payout for pending bets
 const handlePayouts = async (req,res) => {
     try {
         // Only get bets that haven't been settled yet
@@ -305,6 +317,7 @@ const handlePayouts = async (req,res) => {
     
 }
 
+// Admin: get all bets history
 const handleBetHistory = async (req,res)=>{
     try {
         const bets = await Bet.find()
@@ -319,6 +332,8 @@ const handleBetHistory = async (req,res)=>{
     }
     
 }
+
+// Get bet history for a specific user
 const handleUserBetHistory = async (req,res)=>{
     try {
         const {userId} = req.params 
@@ -338,6 +353,7 @@ const handleUserBetHistory = async (req,res)=>{
     
 }
 
+// Admin: fetch game results only
 const handleGetResults = async (req,res) => {
     try {
        
@@ -362,7 +378,7 @@ const handleGetResults = async (req,res) => {
        
    
    }
-   
+// Logout by clearing cookie
 const handleLogoutUser = async (req,res) => {
     try {
         res.clearCookie('refreshtoken', {path: '/user/refresh_token'})
@@ -374,7 +390,7 @@ const handleLogoutUser = async (req,res) => {
     }
     
 }
-
+// Admin: change user role
 const updateUserRole = async (req,res) => {
     try {
         const {email, role} = req.body
@@ -391,7 +407,7 @@ const updateUserRole = async (req,res) => {
     }
     
 }
-
+// Initiate wallet funding via Flutterwave
 const handleWalletTopup = async (req, res) => {
     
     try {
@@ -432,6 +448,7 @@ const handleWalletTopup = async (req, res) => {
     }
   }
 
+  // Confirm payment and update wallet
 const handleWalletSuccess = async (req, res) => {
     try {
         
@@ -487,6 +504,7 @@ const handleWalletSuccess = async (req, res) => {
     }
   }
 
+  // Withdraw funds from user wallet
 const handleWalletWithdraw =async (req, res) => {
     const { amount, account_bank, account_number } = req.body;
     const userId = req.user.id;
@@ -531,6 +549,7 @@ const handleWalletWithdraw =async (req, res) => {
     }
   }
 
+  // Fetch supported banks for transfers
 const handleGetBanks = async (req, res) => {
     try {
       const country = req.params.country.toUpperCase(); // e.g. "NG"
