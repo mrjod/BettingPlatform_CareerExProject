@@ -5,7 +5,7 @@ const User = require("./models/userModel")
 const routes = require("./routes")
 const cors = require("cors")
 const cookieParser = require('cookie-parser')
-const {flw} = require("../service/paymentService")
+const {flw} = require("./service/paymentService")
 
 
 
