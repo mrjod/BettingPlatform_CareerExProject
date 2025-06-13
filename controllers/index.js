@@ -90,17 +90,24 @@ const handleLoginUser = async (req, res )=>{
 const handleRefreshToken = (req, res) => {
     const token = req.cookies.refreshtoken
     if (!token) return res.status(401).json({ message: 'No token found' })
-    // verify token, issue new accessToken...
+    
     
 
   }
 
 const handleGames =  async (req, res)=>{
-    const allGames = await Game.find()
+    try {
+        const allGames = await Game.find()
     res.status(200).json({
         message:"success ",
         allGames
     })
+        
+    } catch (error) {
+        return res.status(500).json({message: error.message})
+        
+    }
+    
 
 }
 
@@ -304,21 +311,35 @@ const handlePayouts = async (req,res) => {
 }
 
 const handleBetHistory = async (req,res)=>{
-    const bets = await Bet.find()
-    res.status(201).json({
-        message:"Bet History Fetched successfully",
-        bets
+    try {
+        const bets = await Bet.find()
+        res.status(201).json({
+            message:"Bet History Fetched successfully",
+            bets
     })
+        
+    } catch (error) {
+        return res.status(500).json({message: error.message})
+        
+    }
+    
 }
 const handleUserBetHistory = async (req,res)=>{
-    const {userId} = req.params 
+    try {
+        const {userId} = req.params 
     
-    const bets = await Bet.find(userId)
-    // const game =
-    res.status(201).json({
-        message:"Bet History Fetched successfully",
-        bets
-    })
+        const bets = await Bet.find(userId)
+        // const game =
+        res.status(201).json({
+            message:"Bet History Fetched successfully",
+            bets
+        })
+        
+    } catch (error) {
+        return res.status(500).json({message: error.message})
+        
+    }
+    
 }
 
 const handleGetResults = async (req,res) => {

@@ -8,39 +8,39 @@ const { validateRegister, authorization, validateLogin, adminAuthorization, vali
 router.get("/",handleHome)
 
 //api to register users 
-router.post("/auth/register", validateRegister, handleRegisterUser)
+router.post("/api/auth/register", validateRegister, handleRegisterUser)
 
 
 //api for login 
-router.post("/auth/login",validateLogin, handleLoginUser)
+router.post("/api/auth/login",validateLogin, handleLoginUser)
 
-router.post("/forgot-password", handleForgotPassword)
+router.post("/api/forgot-password", handleForgotPassword)
 
-router.patch("/reset-password/:token", handleResetPassword)
+router.patch("/api/reset-password/:token", handleResetPassword)
 
 //Api for Admin to post games
-router.post("/games",adminAuthorization, validatePostGame, handlePostGames)
+router.post("/api/games",adminAuthorization, validatePostGame, handlePostGames)
 
 //Api for users to view games
-router.get("/games",authorization, handleGames)
+router.get("/api/games",authorization, handleGames)
 
-router.post("/place-bet", authorization,validatePlaceBet,handlePlaceBet)
+router.post("/api/place-bet", authorization,validatePlaceBet,handlePlaceBet)
 
-router.patch("/games-result/:id",adminAuthorization,validatePostResult ,handleGameResults)
+router.patch("/api/games-result/:id",adminAuthorization,validatePostResult ,handleGameResults)
 
-router.post("/calculate-payouts",adminAuthorization,validateProcessPayment,handlePayouts)
+router.post("/api/calculate-payouts",adminAuthorization,validateProcessPayment,handlePayouts)
 
-router.get("/bets-history/:id",authorization,handleUserBetHistory)
+router.get("/api/bets-history/:id",authorization,handleUserBetHistory)
 
-router.get("/admin/bets-history",authorization,handleBetHistory)
+router.get("/api/admin/bets-history",adminAuthorization,handleBetHistory)
 
-router.get("/results",authorization,validateGetResult,handleGetResults)
+router.get("/api/results",authorization,validateGetResult,handleGetResults)
 
-router.post('/user/refresh_token', handleRefreshToken)
+router.post('/api/user/refresh_token', handleRefreshToken)
 
-router.post("/logout",authorization, handleLogoutUser)
+router.post("/api/logout",authorization, handleLogoutUser)
 
-router.post("/update-user-role",adminAuthorization,updateUserRole)
+router.post("/api/update-user-role",adminAuthorization,updateUserRole)
 
 router.post('/api/wallet/topup',authorization, handleWalletTopup);
 
