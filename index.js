@@ -1,13 +1,12 @@
 const express = require("express")
 const mongoose = require ("mongoose")
-const bycrypt = require("bcryptjs")
 const dotenv = require("dotenv")
-const jwt = require("jsonwebtoken")
-
 const User = require("./models/userModel")
 const routes = require("./routes")
 const cors = require("cors")
 const cookieParser = require('cookie-parser')
+
+
 
 
 
@@ -18,7 +17,8 @@ app.use(express.json())
 app.use(cors())
 app.use(cookieParser());
 
-
+const Flutterwave = require('flutterwave-node-v3');
+const flw = new Flutterwave(process.env.FLW_PUBLIC_KEY, process.env.FLW_SECRET_KEY);
 
 const PORT = process.env.PORT || 5000
 
@@ -34,3 +34,7 @@ mongoose.connect(process.env.MONGODB_URL)
 app.use(routes)
 
 
+  
+  
+  
+  

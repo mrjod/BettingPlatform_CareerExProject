@@ -13,13 +13,39 @@ const sendForgotPasswordEmail = async (email, token)=>{
             from: `${process.env.EMAIL}`,
             to: `${email}`,
             subject: "Reset Password Notification",
-            html: `<h1>Here is the Token to rest your password, please click on the button,
-            <a class"" href='/reset-password/${token}'> Reset Password </a>
+            html: `<h1>Please reset your password</h1>
 
-            if the button does not work , please copt this click below to your browser
-            <a href='/reset-password/${token}'> Reset Password </a>
-           
-            </h1>`
+            <p>If you requested a reset, click the button below:</p>
+
+            <table cellspacing="0" cellpadding="0" style="margin: auto;">
+            <tr>
+                <td bgcolor="#3498db" style="border-radius: 5px; text-align: center;">
+                <a href="https://bettingplatform-careerexproject.onrender.com/reset-password/${token}"
+                    target="_blank"
+                    style="display: inline-block;
+                            padding: 12px 25px;
+                            font-family: Arial, sans-serif;
+                            font-size: 14px;
+                            color: #ffffff;
+                            text-decoration: none;
+                            font-weight: bold;
+                            border: 1px solid #3498db;
+                            border-radius: 5px;">
+                    Reset Password
+                </a>
+                </td>
+            </tr>
+            </table>
+
+            <p style="font-family: Arial, sans-serif; font-size: 12px; color: #555;">
+            If the button above doesn't work, copy & paste this link into your browser:<br>
+            <a href="${process.env.CLIENT_URL}/reset-password/${token}"
+                style="word-break: break-all;">
+                ${process.env.CLIENT_URL}/reset-password/${token}
+            </a>
+            </p>
+
+            `
         }
         await mailTransport.sendMail(mailDetails)
         

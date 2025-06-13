@@ -4,6 +4,9 @@ const Bet = require("../models/betModel")
 const bycrypt = require("bcryptjs")
 const jwt = require("jsonwebtoken")
 const {sendForgotPasswordEmail} = require("../service/sendMail")
+const {flw} = require("../service/paymentService")
+const axios = require('axios');
+const Payment = require("../models/paymentModel")
 
 
 const handleHome = async (req,res) => {
@@ -383,6 +386,158 @@ const updateUserRole = async (req,res) => {
     
 }
 
+const handleWalletTopup = async (req, res) => {
+    
+    try {
+        const { amount, email,phoneNumber, } = req.body;
+        const tx_ref = `wallet_${req.user.id}_${Date.now()}`
+      const paymentResponse = await axios.post(
+        'https://api.flutterwave.com/v3/payments',
+        {
+        tx_ref,
+        amount,
+        currency: 'NGN',
+        redirect_url: `${process.env.CLIENT_URL}/api/wallet/success`,
+        customer: { 
+            email,
+            phonenumber: phoneNumber,
+             name: `${req.user.firstname} ${req.user.lastname}` 
+            },
+        customizations: {
+
+            title : "Betting Platform CareerEX",
+            description:"Payment for Wallet"
+        }
+      },
+      {
+        headers: {
+            Authorization: `Bearer ${process.env.FLW_SECRET_KEY}`
+        }
+
+      }
+    );
+      // Save a "Deposit" record with tx_ref and pending status (optional)
+       res.status(200).json(paymentResponse.data);
+      
+    } 
+    catch (error) {
+    
+      res.status(500).json({ message: error.message });
+    }
+  }
+
+const handleWalletSuccess = async (req, res) => {
+    try {
+        
+        const {status, tx_ref,transaction_id } = req.query
+        if (!status||!transaction_id || !tx_ref) {
+            return res.status(400).json({ message: 'Missing transaction Id' });
+        }
+
+        const existing = await Payment.findOne({ transactionId: transaction_id });
+        if (existing) {
+            return res.status(200).json({ message: 'Transaction already processed' });
+        }
+    
+
+        const verificationResponse = await axios.get(
+            `https://api.flutterwave.com/v3/transactions/${transaction_id}/verify`,
+            {
+                headers: {
+                    Authorization: `Bearer ${process.env.FLW_SECRET_KEY}`,
+                }
+            }
+
+        )
+
+        const transactionData = verificationResponse.data.data
+        if (transactionData.status !== "successful"){
+            res.status(400).json({
+                status: "failed",
+                message: "Transaction verified failed"
+            })
+        }
+
+        const payment = await Payment.create({
+            user: req.user.id,
+            transactionId: transaction_id,
+            tx_ref,
+            amount: transactionData.amount,
+            currency: transactionData.currency,
+            status: transactionData.status,
+        });
+
+        await User.findByIdAndUpdate(req.user.id, { $inc: { walletBalance: transactionData.amount } });
+
+        return res.status(200).json({
+        status: 'success',
+        message: 'Wallet topped up successfully',
+        newBalance: (await User.findById(req.user.id)).walletBalance
+        });
+    
+        
+    }
+    catch (error) {
+      console.error(error);
+      res.status(400).json({ message: error.message });
+    }
+  }
+
+const handleWalletWithdraw =async (req, res) => {
+    const { amount, account_bank, account_number } = req.body;
+    const userId = req.user.id;
+  
+    if (amount > req.user.walletBalance) {
+      return res.status(400).json({ message: 'Insufficient wallet balance' });
+    }
+  
+    try {
+      const payload = {
+        account_bank,
+        account_number,
+        amount,
+        currency: 'NGN',
+        narration: `Withdrawal for user ${userId}`,
+        reference: `withdraw_${userId}_${Date.now()}`,
+      
+      };
+        const accRes = await flw.Misc.verify_Account({account_number,account_bank});
+        if (!accRes.status === 'success') {
+            return res.status(400).json({ message: 'Account verification failed' });
+        }
+
+        
+        
+        
+  
+      const response = await flw.Transfer.initiate(payload);
+      if (response.status === 'success') {
+        await User.findByIdAndUpdate(userId, {
+          $inc: { walletBalance: -amount }
+        });
+        return res.json({ message: 'Withdrawal initiated', data: response.data });
+      }
+  
+      res.status(400).json({ status: response.status ,message: response.message, data: response.data });
+      
+      
+    } catch (error) {
+      console.error('Withdrawal error:', error);
+      res.status(500).json({ message: error.message });
+    }
+  }
+
+const handleGetBanks = async (req, res) => {
+    try {
+      const country = req.params.country.toUpperCase(); // e.g. "NG"
+      const response = await flw.Bank.country({ country });
+      // Response contains a `data` array with bank info
+      res.json({ banks: response.data });
+    } catch (error) {
+      console.error('Error fetching banks:', error);
+      res.status(500).json({ message: 'Failed to fetch banks', error: error.message });
+    }
+  }
 
 
 module.exports = {
@@ -401,6 +556,10 @@ module.exports = {
     handleResetPassword,
     handleRefreshToken,
     handleLogoutUser,
-    updateUserRole
+    updateUserRole,
+    handleWalletTopup,
+    handleWalletSuccess,
+    handleWalletWithdraw,
+    handleGetBanks
     
 }

@@ -1,7 +1,7 @@
 const express = require("express")
 const router = express.Router()
-const { handleRegisterUser, handleLoginUser, handleGames, handlePostGames, handlePlaceBet, handleGameResults, handlePayouts, handleBetHistory, handleUserBetHistory, handleGetResults, handleHome, handleForgotPassword, handleResetPassword, handleRefreshToken, handleLogoutUser, updateUserRole } = require("../controllers")
-const { validateRegister, authorization, validateLogin, adminAuthorization, validatePostGame, validatePlaceBet, validatePostResult, validateProcessPayment, validateGetResult } = require("../middlewares")
+const { handleRegisterUser, handleLoginUser, handleGames, handlePostGames, handlePlaceBet, handleGameResults, handlePayouts, handleBetHistory, handleUserBetHistory, handleGetResults, handleHome, handleForgotPassword, handleResetPassword, handleRefreshToken, handleLogoutUser, updateUserRole, handleWalletTopup, handleWalletSuccess, handleWalletWithdraw, handleGetBanks } = require("../controllers")
+const { validateRegister, authorization, validateLogin, adminAuthorization, validatePostGame, validatePlaceBet, validatePostResult, validateProcessPayment, validateGetResult, validateBank } = require("../middlewares")
 
 
 
@@ -24,7 +24,6 @@ router.post("/games",adminAuthorization, validatePostGame, handlePostGames)
 //Api for users to view games
 router.get("/games",authorization, handleGames)
 
-
 router.post("/place-bet", authorization,validatePlaceBet,handlePlaceBet)
 
 router.patch("/games-result/:id",adminAuthorization,validatePostResult ,handleGameResults)
@@ -43,5 +42,12 @@ router.post("/logout",authorization, handleLogoutUser)
 
 router.post("/update-user-role",adminAuthorization,updateUserRole)
 
+router.post('/api/wallet/topup',authorization, handleWalletTopup);
+
+router.get('/api/wallet/success',authorization, handleWalletSuccess);
+
+router.post('/api/wallet/withdraw', authorization, handleWalletWithdraw);
+
+router.get('/api/banks/:country',validateBank , handleGetBanks);
 
 module.exports = router

@@ -264,6 +264,7 @@ const validateProcessPayment = async (req,res,next)=>{
             return res.status(400).json({
                 message: "Game not Fount or Game not updated" 
     })}
+    next()
 }
 
 const validateGetResult = async (req,res,next)=>{
@@ -272,8 +273,19 @@ const validateGetResult = async (req,res,next)=>{
     return res.status(400).json({
         message: "Game not Fount " 
     })
+    next()
+
 }
 
+const validateBank = async (req,res,next)=>{
+    const country = req.params.country.toUpperCase(); 
+    if (!country) 
+        return res.status(400).json({
+            message: "COuntry not found " 
+        })
+    next()
+
+}
 
 module.exports = {
 validateRegister,
@@ -284,6 +296,7 @@ validatePostGame,
 validatePlaceBet,
 validatePostResult,
 validateProcessPayment,
-validateGetResult
+validateGetResult,
+validateBank
 
 }
