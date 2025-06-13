@@ -116,13 +116,8 @@ const handleForgotPassword = async(req,res)=>{
         const {email} = req.body
         const user = await User.findOne({email})
     
-        if (!user){
-            return res.status(404).json({message: "User not Found"})
-    
-        }
-    
         const accessToken = jwt.sign(
-            { user },
+            {user},
             process.env.ACCESS_TOKEN,
             { expiresIn: "15m" }
         )
@@ -327,8 +322,9 @@ const handleBetHistory = async (req,res)=>{
 const handleUserBetHistory = async (req,res)=>{
     try {
         const {userId} = req.params 
+        
     
-        const bets = await Bet.find(userId)
+        const bets = await Bet.find({user: userId})
         // const game =
         res.status(201).json({
             message:"Bet History Fetched successfully",
@@ -383,17 +379,6 @@ const updateUserRole = async (req,res) => {
     try {
         const {email, role} = req.body
 
-        if(!email){
-            res.status(400).json({
-                message:"Please Input a valid Email Address "
-            })
-        }
-
-        if(!role){
-            res.status(400).json({
-                message:"Please Input a valid Role "
-            })
-        }
 
         const updateRole = await User.findOneAndUpdate({email},{role})
         res.status(201).json({
@@ -451,9 +436,7 @@ const handleWalletSuccess = async (req, res) => {
     try {
         
         const {status, tx_ref,transaction_id } = req.query
-        if (!status||!transaction_id || !tx_ref) {
-            return res.status(400).json({ message: 'Missing transaction Id' });
-        }
+        
 
         const existing = await Payment.findOne({ transactionId: transaction_id });
         if (existing) {

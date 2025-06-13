@@ -127,7 +127,8 @@ const validatePostGame = async(req,res,next)=>{
 }
 
 const validatePlaceBet = async (req,res,next)=>{
-    const {gameId, stake, option} =req.body
+    try {
+        const {gameId, stake, option} =req.body
         const user = req.user
         // console.log(test);
             
@@ -155,6 +156,12 @@ const validatePlaceBet = async (req,res,next)=>{
         }
 
         next()
+        
+    } catch (error) {
+        return res.status(500).json({message: error.message})
+        
+    }
+    
 
 }
 
@@ -240,52 +247,230 @@ const adminAuthorization = async(req,res, next)=>{
 
 
 const validatePostResult = async (req,res,next)=>{
-    const {gameId} = req.params
-    const {result}= req.body
-    const game = await Game.findById(gameId)
+    try {
+        const {gameId} = req.params
+        const {result}= req.body
+        const game = await Game.findById(gameId)
+    
+        if (!game){
+            return res.status(404).json({message: "Game not Found"})
+    
+        }
+        if (!result){
+            return res.status(404).json({message: "Please insert a result "})
+    
+        }
+        next()
 
-    if (!game){
-        return res.status(404).json({message: "Game not Found"})
-
+    } catch (error) {
+        return res.status(500).json({message: error.message})
+        
     }
-    if (!result){
-        return res.status(404).json({message: "Please insert a result "})
 
-    }
-    next()
 
 
 }
 
 const validateProcessPayment = async (req,res,next)=>{
-    const bet = await Bet.find({ outcome: 'pending' }) 
-    const game = await Game.findById(bet.game) 
-    if (!game || game.result === '0:0') {
-            return res.status(400).json({
-                message: "Game not Fount or Game not updated" 
-    })}
-    next()
+
+    try {
+        const bet = await Bet.find({ outcome: 'pending' }) 
+        if (!bet) {
+            return res.status(400).json({ message: 'No pending bet found' });
+          }
+        for (const bets of bet) {
+            const game = await Game.findById(bets.game) 
+            
+            if (!game || game.result === '0:0') {
+                    return res.status(400).json({
+                        message: "Game not Fount or Game not updated" 
+            })}
+    
+        }
+        
+        next()
+        
+    } catch (error) {
+        return res.status(500).json({message: error.message})
+    }
+
 }
 
 const validateGetResult = async (req,res,next)=>{
-    const gameResult = await Game.find()
-    if (!gameResult) 
-    return res.status(400).json({
-        message: "Game not Fount " 
-    })
-    next()
+    try {
+        const gameResult = await Game.find()
+        if (!gameResult) 
+        return res.status(400).json({
+            message: "Game not Fount " 
+        })
+        next()
+    
+    } catch (error) {
+        return res.status(500).json({message: error.message})
+        
+    }
 
 }
 
 const validateBank = async (req,res,next)=>{
-    const country = req.params.country.toUpperCase(); 
-    if (!country) 
-        return res.status(400).json({
-            message: "COuntry not found " 
-        })
-    next()
+    try {
+        const country = req.params.country.toUpperCase(); 
+        if (!country) 
+            return res.status(400).json({
+                message: "COuntry not found " 
+            })
+        next()
+        
+    } catch (error) {
+        return res.status(500).json({message: error.message})
+    }
+
 
 }
+
+const validateUserBetHistory = async(req,res,next)=>{
+    try {
+        const {userId} = req.params 
+        const findUser = await User.findById(userId)
+        
+        
+        if (!findUser) 
+            return res.status(400).json({
+                message: "No user" 
+            })
+        next()
+        
+    } catch (error) {
+        return res.status(500).json({message: error.message})
+    }
+
+}
+
+const validateForgotPassword = async (req,res,next) => {
+    try {
+        const user = await User.findOne({email})
+    
+        if (!user){
+            return res.status(404).json({message: "User not Found"})
+    
+        }
+        next()
+    
+        
+    } catch (error) {
+        return res.status(500).json({message: error.message})
+        
+    }
+
+}
+
+
+const validateResetPassword = async (req,res,next) => {
+    try {
+        const token = req.params.token
+        const  {password} = req.body
+        if (!password || !token){
+            return res.status(404).json({message: "invalid Token"})
+    
+        }
+        next()
+        
+    } catch (error) {
+        return res.status(500).json({message: error.message})
+        
+        
+    }
+    
+}
+
+const validateUserRole = async (req,res,next) => {
+    try {
+        const {email, role} = req.body
+
+        if(!email){
+            res.status(400).json({
+                message:"Please Input a valid Email Address "
+            })
+        }
+
+        if(!role){
+            res.status(400).json({
+                message:"Please Input a valid Role "
+            })
+        }
+        next()
+    } catch (error) {
+        return res.status(500).json({message: error.message})
+        
+    }
+    
+}
+
+const validateWalletTop = async (req,res,next) => {
+    try {
+        const { amount, email,phoneNumber, } = req.body;
+        if(!email){
+            res.status(400).json({
+                message:"Please Input a valid Email Address "
+            })
+        }
+        if(!amount){
+            res.status(400).json({
+                message:"Please Input a valid amount "
+            })
+        }
+        if(!phoneNumber){
+            res.status(400).json({
+                message:"Please Input a valid Phone Number "
+            })
+        }
+        next()
+    } catch (error) {
+        return res.status(500).json({message: error.message})
+    }
+
+}
+
+const validateWalletSuccess = async (req,res,next) => {
+    try {
+        const {status, tx_ref,transaction_id } = req.query
+        if (!status||!transaction_id || !tx_ref) {
+            return res.status(400).json({ message: 'Missing transaction Id' });
+        }
+        next()
+    } catch (error) {
+        return res.status(500).json({message: error.message})
+        
+    }
+}
+
+const validateWalletWithdraw = async (params) => {
+    try {
+        const { amount, account_bank, account_number } = req.body;
+        
+        if(!account_bank){
+            res.status(400).json({
+                message:"Please Input a valid account bank code"
+            })
+        }
+        if(!amount){
+            res.status(400).json({
+                message:"Please Input a valid amount "
+            })
+        }
+        if(!account_number){
+            res.status(400).json({
+                message:"Please Input a account number "
+            })
+        }
+
+        next()
+    } catch (error) {
+        return res.status(500).json({message: error.message})
+    }
+    
+}
+
 
 module.exports = {
 validateRegister,
@@ -297,6 +482,13 @@ validatePlaceBet,
 validatePostResult,
 validateProcessPayment,
 validateGetResult,
-validateBank
+validateBank,
+validateUserBetHistory,
+validateForgotPassword,
+validateResetPassword,
+validateUserRole,
+validateWalletTop,
+validateWalletSuccess,
+validateWalletWithdraw
 
 }
