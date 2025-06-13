@@ -5,6 +5,7 @@ const User = require("./models/userModel")
 const routes = require("./routes")
 const cors = require("cors")
 const cookieParser = require('cookie-parser')
+const {flw} = require("../service/paymentService")
 
 
 
@@ -17,8 +18,7 @@ app.use(express.json())
 app.use(cors())
 app.use(cookieParser());
 
-const Flutterwave = require('flutterwave-node-v3');
-const flw = new Flutterwave(process.env.FLW_PUBLIC_KEY, process.env.FLW_SECRET_KEY);
+
 
 const PORT = process.env.PORT || 5000
 
